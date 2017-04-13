@@ -42,7 +42,7 @@ class MapScanner extends TileBehavior
 		STADIUM_FULL,
 		AIRPORT,
 		SEAPORT,
-		NEW_BUILDING; //Placeholder enum for new building. Change to building name if making a new building
+		NEW_HOSPITAL; //Placeholder enum for new building. Change to building name if making a new building
 	}
 
 	@Override
@@ -208,17 +208,25 @@ class MapScanner extends TileBehavior
 		city.powerPlants.add(new CityLocation(xpos, ypos));
 	}
 	
+	/*   MinSun's code starts   */
+	
 	//Placeholder for a new building
 	//Look to the other do<building name>() functions to guidance on what this function should do.
-	void doNewBuilding()
+	void doNewHospital()
 	{
 		//Very basic building functionality. Checks for power and does "repair"
 		boolean powerOn = checkZonePower();
 		if ((city.cityTime % 8) == 0) {
-			repairZone(NEW_BUILDING, 3);
+			repairZone(NEW_HOSPITAL, 3);
 		}
+		
+		// Scan the city and count how many hospitals are there
+		city.newHospitalCount++;
+		
 	}
 
+	/*   MinSun's code finished   */
+	
 	void doFireStation()
 	{
 		boolean powerOn = checkZonePower();
@@ -898,7 +906,7 @@ class MapScanner extends TileBehavior
 
 		int value = city.getLandValue(xpos, ypos);
 		value -= city.pollutionMem[ypos/2][xpos/2];
-
+		
 		if (value < 0)
 			value = 0;    //cap at 0
 		else

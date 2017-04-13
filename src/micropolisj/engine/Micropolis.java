@@ -125,6 +125,8 @@ public class Micropolis
 	int nuclearCount;
 	int seaportCount;
 	int airportCount;
+	
+	int newHospitalCount; // added my MinSun
 
 	int totalPop;
 	int lastCityPop;
@@ -158,6 +160,8 @@ public class Micropolis
 	int resValve;   // ranges between -2000 and 2000, updated by setValves
 	int comValve;   // ranges between -1500 and 1500
 	int indValve;   // ranges between -1500 and 1500
+	
+	public int virus; // added by MinSun: virus value initialized to 0.
 
 	boolean resCap;  // residents demand a stadium, caps resValve at 0
 	boolean comCap;  // commerce demands airport,   caps comValve at 0
@@ -539,6 +543,8 @@ public class Micropolis
 		seaportCount = 0;
 		airportCount = 0;
 		powerPlants.clear();
+		
+		newHospitalCount = 0; // added by MinSun
 
 		for (int y = 0; y < fireStMap.length; y++) {
 			for (int x = 0; x < fireStMap[y].length; x++) {
@@ -1367,6 +1373,51 @@ public class Micropolis
 		comValve += (int) comRatio;
 		indValve += (int) indRatio;
 
+		/*   MinSun's code starts   */
+		
+		// Check virus level, apply population decrease
+		if (virus < 100) {
+			resValve -= 5;
+		}
+		else if (virus < 500) {
+			resValve -= 10;
+		}
+		else if (virus < 2000) {
+			resValve -= 20;
+		}
+		else if (virus < 5000) {
+			resValve -= 50;
+		}
+		else if (virus < 10000) {
+			resValve -= 100;
+		}
+		else if (virus < 50000) {
+			resValve -= 200;
+		}
+		else {
+			resValve -= 300;
+		}
+		
+		// Add virus by checking the resValve value
+		if ((0 < resValve) && (resValve < 500)) {
+			virus += 5;
+		}
+		else if (resValve < 1000) {
+			virus += 10;
+		}
+		else if (resValve < 1500) {
+			virus += 15;
+		}
+		else {
+			assert(resValve <= 2000);
+			virus += 20;
+		}
+		
+		// Eliminate virus, depending on the number of hospitals
+		virus -= (newHospitalCount * 5);
+		
+		/*   MinSun's code finishes */
+		
 		if (resValve > 2000)
 			resValve = 2000;
 		else if (resValve < -2000)
@@ -1461,7 +1512,7 @@ public class Micropolis
 		bb.put("INDUSTRIAL", new MapScanner(this, MapScanner.B.INDUSTRIAL));
 		bb.put("COAL", new MapScanner(this, MapScanner.B.COAL));
 		bb.put("NUCLEAR", new MapScanner(this, MapScanner.B.NUCLEAR));
-		bb.put("NEW_BUILDING", new MapScanner(this, MapScanner.B.NEW_BUILDING));
+		bb.put("NEW_HOSPITAL", new MapScanner(this, MapScanner.B.NEW_HOSPITAL));
 		bb.put("FIRESTATION", new MapScanner(this, MapScanner.B.FIRESTATION));
 		bb.put("POLICESTATION", new MapScanner(this, MapScanner.B.POLICESTATION));
 		bb.put("STADIUM_EMPTY", new MapScanner(this, MapScanner.B.STADIUM_EMPTY));
@@ -2529,6 +2580,19 @@ public class Micropolis
 				sendMessage(MicropolisMessage.NEED_RES);
 			}
 			break;
+		
+		/*   MinSun's code starts   */
+			
+		case 2:
+			// For every cycle, notify if there's too much virus, and 
+			// citizens need a hospital
+			if (virus > 5) {
+				sendMessage(MicropolisMessage.NEED_HOSPITAL);
+			}
+			break;
+			
+		/*   MinSun's code finished   */
+			
 		case 5:
 			if (totalZoneCount / 8 >= comZoneCount) {
 				sendMessage(MicropolisMessage.NEED_COM);
